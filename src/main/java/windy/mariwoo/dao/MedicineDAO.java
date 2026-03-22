@@ -1,0 +1,203 @@
+package windy.mariwoo.dao;
+
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
+
+import windy.mariwoo.model.DatabaseModel;
+import windy.mariwoo.model.MedicineModel;
+import windy.mariwoo.model.UserModel;
+
+
+public class MedicineDAO {
+	private Connection connection = null;
+	private PreparedStatement pstmt = null;
+	private ResultSet rs = null;
+	private DatabaseModel dbModel = new DatabaseModel();
+	// DB Driver
+  
+    String dbDriver = "org.mariadb.jdbc.Driver";
+	private String jdbcUrl = dbModel.getJdbcUrl();
+    //private String jdbcUrl = "jdbc:mariadb://192.168.0.60:33308/bicycledb";
+	private String id = dbModel.getUser();         
+	private String password = dbModel.getPassword();
+	
+
+	// //////////////////////////////////////////////////
+	// - 용품 등록
+	// //////////////////////////////////////////////////
+	public List<MedicineModel> selectListMedicine(MedicineModel modelParam) {
+
+		List<MedicineModel> listMedicine = new ArrayList<MedicineModel>();
+		
+		try {
+			// 데이터베이스 객체 생성
+			Class.forName(dbDriver);
+			connection = DriverManager.getConnection(jdbcUrl, id, password);
+
+			pstmt = connection.prepareStatement(
+					"select no, name, user_no "
+					+ "from medicine m "
+					+ "where user_no = ? "
+					+ "ORDER BY m.no ASC ");
+
+			pstmt.setLong(1, modelParam.getUserNo());
+			
+			rs = pstmt.executeQuery();
+			
+			while(rs.next()) {
+				MedicineModel medicine = new MedicineModel();
+				medicine.setScheduleNo(rs.getLong("no"));
+				medicine.setName(rs.getString("name"));
+				
+				ArrayList<MedicineModel> listModel = new ArrayList<>();
+				
+				pstmt = connection.prepareStatement(
+						"SELECT ms.no, ms.medicine_no, ms.weekday, m.name, ms.intake_time, ms.intake_type, ms.alarm_enabled, ms.intake_time_type "
+						+ "FROM medicine_schedule ms "
+						+ "JOIN medicine m ON ms.medicine_no = m.no "
+						+ "WHERE ms.weekday = ? AND ms.medicine_no = ? "
+						+ "ORDER BY ms.weekday, m.name, ms.intake_time ");
+
+				pstmt.setInt(1, modelParam.getWeekDay());
+				pstmt.setLong(2, rs.getLong("no"));
+				
+				rs = pstmt.executeQuery();
+				
+				while(rs.next()) {
+					MedicineModel model = new MedicineModel();
+					model.setScheduleNo(rs.getLong("no"));
+					model.setIntakeTimeType(rs.getString("intake_time_type"));
+					model.setIntakeType(rs.getString("intake_type")+" "+rs.getString("intake_time"));
+					
+					listModel.add(model);
+				};
+				
+				medicine.setListMedicine(listModel);
+				
+				if(0<listModel.size()) {
+					listMedicine.add(medicine);	
+				}
+				
+				
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// 사용한 객체 종료
+			close(rs, pstmt, connection);
+		}
+		return listMedicine;				
+	}
+			
+	// //////////////////////////////////////////////////
+
+	// //////////////////////////////////////////////////
+	// - 용품 등록
+	// //////////////////////////////////////////////////
+	public boolean updatePw(long no, String pw) {
+
+		boolean check = false;
+		
+		try {
+			// 데이터베이스 객체 생성
+			Class.forName(dbDriver);
+			connection = DriverManager.getConnection(jdbcUrl, id, password);
+
+			pstmt = connection.prepareStatement(
+					"UPDATE user_info SET pw=? WHERE no=? ");
+			
+			pstmt.setString(1, pw);
+			pstmt.setLong(2, no);
+			
+			int cnt = pstmt.executeUpdate();
+			
+			if(cnt>0) {
+				check = true;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// 사용한 객체 종료
+			close(rs, pstmt, connection);
+		}
+		return check;				
+	}
+			
+	// //////////////////////////////////////////////////
+
+	// //////////////////////////////////////////////////
+	// - 용품 등록
+	// //////////////////////////////////////////////////
+	public boolean updateUser(UserModel modelParam) {
+
+		boolean check = false;
+		
+		try {
+			// 데이터베이스 객체 생성
+			Class.forName(dbDriver);
+			connection = DriverManager.getConnection(jdbcUrl, id, password);
+
+			pstmt = connection.prepareStatement(
+					"UPDATE user_info "
+					+ "SET tel=?, email=?, birth=? "
+					+ "WHERE no=? ");
+			
+			pstmt.setString(1, modelParam.getTel());
+			pstmt.setString(2, modelParam.getEmail());
+			pstmt.setString(3, modelParam.getBirth());
+			pstmt.setLong(4, modelParam.getNo());
+			
+			int cnt = pstmt.executeUpdate();
+			
+			if(cnt>0) {
+				check = true;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// 사용한 객체 종료
+			close(rs, pstmt, connection);
+		}
+		return check;				
+	}
+			
+	// //////////////////////////////////////////////////
+
+	
+	
+	////////////////////////////////////////////////////
+	//	- 데이터베이스 관련 객체 정리 -
+	public void close(ResultSet rs, PreparedStatement pstmt, Connection conn) {
+		
+		if (rs != null) {
+			try {
+				rs.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		if (pstmt != null) {
+			try {
+				pstmt.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+}
