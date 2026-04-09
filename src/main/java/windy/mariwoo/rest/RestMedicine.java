@@ -14,7 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
-import windy.mariwoo.dao.LoginDAO;
+import windy.mariwoo.dao.UserDAO;
 import windy.mariwoo.model.MedicineModel;
 import windy.mariwoo.model.UserModel;
 import windy.mariwoo.dao.MedicineDAO;
@@ -56,7 +56,7 @@ public class RestMedicine extends HttpServlet {
 		if("list".equals(cmd)) {
 			long no = Long.parseLong(request.getParameter("no"));
 			int weekDay = Integer.parseInt(request.getParameter("week_day"));
-			test
+			
 			MedicineModel moedlParam = new MedicineModel();
 			moedlParam.setUserNo(no);
 			moedlParam.setWeekDay(weekDay);
@@ -77,8 +77,7 @@ public class RestMedicine extends HttpServlet {
 					
 					JSONObject jObj2 = new JSONObject();
 					jObj2.put("schedule_no", medicine.getScheduleNo());
-					jObj2.put("intake_time", medicine.getIntakeTime());
-					jObj2.put("intake_time_type", medicine.getIntakeTimeType());
+					jObj2.put("intake_time", medicine.getIntakeTimeType()+" "+medicine.getIntakeTime());
 					
 					jArr2.add(jObj2);
 				}
@@ -105,43 +104,62 @@ public class RestMedicine extends HttpServlet {
 			out.print(json);
 		}
 		
-		else if("change_pw".equals(cmd)) {
-			long no = Long.parseLong(request.getParameter("no"));
-			String pw = request.getParameter("pw");
+		else if("add_medicine".equals(cmd)) {
 			
-			boolean check = lDao.updatePw(no, pw);
-
-			JSONObject json = new JSONObject();
+			long userNo = Long.parseLong(request.getParameter("user_no"));
+			String name = request.getParameter("name");
+			String strWeekday = request.getParameter("weekday");
+			String intakeTimeType1 = request.getParameter("intake_time_type1");
+			String intakeTime1 = request.getParameter("intake_time1");
+			String intakeType1 = request.getParameter("intake_type1");
+			String intakeTimeType2 = request.getParameter("intake_time_type2");
+			String intakeTime2 = request.getParameter("intake_time2");
+			String intakeType2 = request.getParameter("intake_type2");
+			String intakeTimeType3 = request.getParameter("intake_time_type3");
+			String intakeTime3 = request.getParameter("intake_time3");
+			String intakeType3 = request.getParameter("intake_type3");
+			String intakeTimeType4 = request.getParameter("intake_time_type4");
+			String intakeTime4 = request.getParameter("intake_time4");
+			String intakeType4 = request.getParameter("intake_type4");
 			
-			json.put("result", String.valueOf(check));
-
-			response.setContentType("text/html; charset=utf-8");
-			PrintWriter out = response.getWriter();
-			out.print(json);
+			MedicineModel medicine = new MedicineModel();
+			medicine.setUserNo(userNo);
+			medicine.setName(name);
+			
+			long no = mDao.insertMedicine(medicine);
+			
+			int weekDay1 = 0;
+			int weekDay2 = 0;
+			int weekDay3 = 0;
+			int weekDay4 = 0;
+			int weekDay5 = 0;
+			int weekDay6 = 0;
+			int weekDay7 = 0;
+			
+			for (int i = 0; i < strWeekday.length(); i++) {
+				String day = strWeekday.substring(i, i + 1);
+			    
+				if(i==0) weekDay1 = Integer.parseInt(day);
+				if(i==1) weekDay2 = Integer.parseInt(day);
+				if(i==2) weekDay3 = Integer.parseInt(day);
+				if(i==3) weekDay4 = Integer.parseInt(day);
+				if(i==4) weekDay5 = Integer.parseInt(day);
+				if(i==5) weekDay6 = Integer.parseInt(day);
+				if(i==6) weekDay7 = Integer.parseInt(day);
+			}
+			
+			MedicineModel schedule = new MedicineModel();
+			schedule.setNo(no);
+			schedule.setWeekDay(weekDay1);
+			schedule.setIntakeTimeType(intakeTimeType1);
+			schedule.setIntakeTime(intakeTime1);
+			schedule.setIntakeType(intakeType1);
+			
+			
+			
+			
 		}
 		
-		else if("change_info".equals(cmd)) {
-			long no = Long.parseLong(request.getParameter("no"));
-			String tel = request.getParameter("tel");
-			String email = request.getParameter("email");
-			String birth = request.getParameter("birth");
-			
-			UserModel user = new UserModel();
-			user.setNo(no);
-			user.setTel(tel);
-			user.setEmail(email);
-			user.setBirth(birth);
-			
-			boolean check = lDao.updateUser(user);
-
-			JSONObject json = new JSONObject();
-			
-			json.put("result", String.valueOf(check));
-
-			response.setContentType("text/html; charset=utf-8");
-			PrintWriter out = response.getWriter();
-			out.print(json);
-		}
 	}
 
 }

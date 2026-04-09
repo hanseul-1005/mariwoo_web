@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class MedicineModel {
 
-	private long id = -1;
+	private long no = -1;
 	private long userNo = -1;
 	private String name = "";
 	private String intakeType = "식전";
@@ -27,11 +27,12 @@ public class MedicineModel {
 	
 	private ArrayList<MedicineModel> listMedicine = null;
 	
-	public long getId() {
-		return id;
+	
+	public long getNo() {
+		return no;
 	}
-	public void setId(long id) {
-		this.id = id;
+	public void setNo(long no) {
+		this.no = no;
 	}
 	public long getUserNo() {
 		return userNo;

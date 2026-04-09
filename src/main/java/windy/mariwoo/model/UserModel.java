@@ -5,6 +5,7 @@ public class UserModel {
 	private long no = -1;
 	private String id = "";
 	private String pw = "";
+	private String name = "";
 	private String tel = "";
 	private String email = "";
 	private String birth = "";
@@ -31,6 +32,12 @@ public class UserModel {
 	}
 	public void setPw(String pw) {
 		this.pw = pw;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
 	}
 	public String getTel() {
 		return tel;

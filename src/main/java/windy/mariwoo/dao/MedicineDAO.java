@@ -30,6 +30,47 @@ public class MedicineDAO {
 	// //////////////////////////////////////////////////
 	// - 용품 등록
 	// //////////////////////////////////////////////////
+	public long insertMedicine(MedicineModel modelParam) {
+
+		long no = -1;
+		
+		try {
+			// 데이터베이스 객체 생성
+			Class.forName(dbDriver);
+			connection = DriverManager.getConnection(jdbcUrl, id, password);
+
+			pstmt = connection.prepareStatement(
+					"INSERT INTO medicine_info(name, user_no) VALUES(?, ?) ");
+			
+			pstmt.setString(1, modelParam.getName());
+			pstmt.setLong(2, modelParam.getUserNo());
+			
+			pstmt.executeUpdate();
+			
+			pstmt = connection.prepareStatement(
+					"SELECT no FROM medicine_info ORDER BY medicine_no DESC limit 1 ");
+			
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				no = rs.getLong("no");
+			}
+			
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// 사용한 객체 종료
+			close(rs, pstmt, connection);
+		}
+		return no;				
+	}
+			
+	// //////////////////////////////////////////////////
+
+	// //////////////////////////////////////////////////
+	// - 약 목록
+	// //////////////////////////////////////////////////
 	public List<MedicineModel> selectListMedicine(MedicineModel modelParam) {
 
 		List<MedicineModel> listMedicine = new ArrayList<MedicineModel>();
@@ -71,6 +112,7 @@ public class MedicineDAO {
 				while(rs.next()) {
 					MedicineModel model = new MedicineModel();
 					model.setScheduleNo(rs.getLong("no"));
+					model.setName(medicine.getName());
 					model.setIntakeTimeType(rs.getString("intake_time_type"));
 					model.setIntakeType(rs.getString("intake_type")+" "+rs.getString("intake_time"));
 					
