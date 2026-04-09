@@ -56,7 +56,7 @@ public class RestMedicine extends HttpServlet {
 		if("list".equals(cmd)) {
 			long no = Long.parseLong(request.getParameter("no"));
 			int weekDay = Integer.parseInt(request.getParameter("week_day"));
-			
+			test
 			MedicineModel moedlParam = new MedicineModel();
 			moedlParam.setUserNo(no);
 			moedlParam.setWeekDay(weekDay);
