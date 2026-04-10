@@ -20,14 +20,14 @@ import windy.mariwoo.model.UserModel;
 /**
  * Servlet implementation class Rest
  */
-@WebServlet(description = "RestLogin", urlPatterns = { "/login.windy" })
-public class RestLogin extends HttpServlet {
+@WebServlet(description = "RestUser", urlPatterns = { "/user.windy" })
+public class RestUser extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public RestLogin() {
+    public RestUser() {
         super();
         // TODO Auto-generated constructor stub
     }

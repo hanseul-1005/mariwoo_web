@@ -140,11 +140,11 @@ public class MedicineDAO {
 	// //////////////////////////////////////////////////
 
 	// //////////////////////////////////////////////////
-	// - 용품 등록
+	// - 약 목록
 	// //////////////////////////////////////////////////
-	public boolean updatePw(long no, String pw) {
+	public List<MedicineModel> selectListMedicineForModify(MedicineModel modelParam) {
 
-		boolean check = false;
+		List<MedicineModel> listMedicine = new ArrayList<MedicineModel>();
 		
 		try {
 			// 데이터베이스 객체 생성
@@ -152,15 +152,24 @@ public class MedicineDAO {
 			connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 			pstmt = connection.prepareStatement(
-					"UPDATE user_info SET pw=? WHERE no=? ");
+					"SELECT ms.no, ms.medicine_no, ms.weekday, m.name, ms.intake_time, ms.intake_type, ms.alarm_enabled, ms.intake_time_type "
+					+ "FROM medicine_schedule ms "
+					+ "JOIN medicine m ON ms.medicine_no = m.no "
+					+ "WHERE ms.weekday = ? AND ms.medicine_no = ? "
+					+ "ORDER BY ms.weekday, m.name, ms.intake_time ");
+
+			pstmt.setLong(1, modelParam.getUserNo());
 			
-			pstmt.setString(1, pw);
-			pstmt.setLong(2, no);
+			rs = pstmt.executeQuery();
 			
-			int cnt = pstmt.executeUpdate();
-			
-			if(cnt>0) {
-				check = true;
+			while(rs.next()) {
+				MedicineModel medicine = new MedicineModel();
+				medicine.setScheduleNo(rs.getLong("no"));
+				medicine.setName(rs.getString("name"));
+				medicine.setIntakeTimeType(rs.getString("intake_time_type"));
+				medicine.setIntakeType(rs.getString("intake_type")+" "+rs.getString("intake_time"));
+				
+				
 			}
 			
 		} catch (Exception e) {
@@ -169,51 +178,11 @@ public class MedicineDAO {
 			// 사용한 객체 종료
 			close(rs, pstmt, connection);
 		}
-		return check;				
+		return listMedicine;				
 	}
 			
 	// //////////////////////////////////////////////////
 
-	// //////////////////////////////////////////////////
-	// - 용품 등록
-	// //////////////////////////////////////////////////
-	public boolean updateUser(UserModel modelParam) {
-
-		boolean check = false;
-		
-		try {
-			// 데이터베이스 객체 생성
-			Class.forName(dbDriver);
-			connection = DriverManager.getConnection(jdbcUrl, id, password);
-
-			pstmt = connection.prepareStatement(
-					"UPDATE user_info "
-					+ "SET tel=?, email=?, birth=? "
-					+ "WHERE no=? ");
-			
-			pstmt.setString(1, modelParam.getTel());
-			pstmt.setString(2, modelParam.getEmail());
-			pstmt.setString(3, modelParam.getBirth());
-			pstmt.setLong(4, modelParam.getNo());
-			
-			int cnt = pstmt.executeUpdate();
-			
-			if(cnt>0) {
-				check = true;
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			// 사용한 객체 종료
-			close(rs, pstmt, connection);
-		}
-		return check;				
-	}
-			
-	// //////////////////////////////////////////////////
-
-	
 	
 	////////////////////////////////////////////////////
 	//	- 데이터베이스 관련 객체 정리 -

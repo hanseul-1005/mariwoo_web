@@ -159,6 +159,13 @@ public class RestMedicine extends HttpServlet {
 			
 			
 		}
+		else if("select_medicine".equals(cmd)) {
+			long userNo = Long.parseLong(request.getParameter("user_no"));
+			long no = Long.parseLong(request.getParameter("no"));
+			
+			List<MedicineModel> listMedicine = mDao.selectListMedicine(null)
+			
+		}
 		
 	}
 
