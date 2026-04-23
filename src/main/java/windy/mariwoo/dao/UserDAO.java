@@ -71,6 +71,40 @@ public class UserDAO {
 	// //////////////////////////////////////////////////
 
 	// //////////////////////////////////////////////////
+	// - 아이디 중복 확인
+	// //////////////////////////////////////////////////
+	public boolean checkId(String userId) {
+
+		boolean check = true;
+		
+		try {
+			// 데이터베이스 객체 생성
+			Class.forName(dbDriver);
+			connection = DriverManager.getConnection(jdbcUrl, id, password);
+
+			pstmt = connection.prepareStatement(
+					"SELECT id FROM user_info WHERE id=? ");
+			
+			pstmt.setString(1, userId);
+			
+			rs = pstmt.executeQuery();
+			
+			if(rs.next()) {
+				check = false;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// 사용한 객체 종료
+			close(rs, pstmt, connection);
+		}
+		return check;				
+	}
+			
+	// //////////////////////////////////////////////////
+
+	// //////////////////////////////////////////////////
 	// - 회원가입
 	// //////////////////////////////////////////////////
 	public boolean insertUser(UserModel modelParam) {
@@ -93,7 +127,7 @@ public class UserDAO {
 			pstmt.setString(5, modelParam.getBirth());
 			
 			int cnt = pstmt.executeUpdate();
-			
+			System.out.println("cnt : "+cnt);
 			if(cnt>0) {
 				check = true;
 			}
@@ -233,7 +267,7 @@ public class UserDAO {
 			connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 			pstmt = connection.prepareStatement(
-					"SELECT user_no FROM user_info WHERE user_id=? AND user_tel=? ");
+					"SELECT no FROM user_info WHERE id=? AND tel=? ");
 			
 			pstmt.setString(1, userId);
 			pstmt.setString(2, userTel);
@@ -241,7 +275,7 @@ public class UserDAO {
 			rs = pstmt.executeQuery();
 			
 			if(rs.next()) {
-				targetNo = rs.getLong("user_no");
+				targetNo = rs.getLong("no");
 			}
 			
 		} catch (Exception e) {
@@ -309,7 +343,7 @@ public class UserDAO {
 				pstmt = connection.prepareStatement(
 						"select ui.no, ui.name, ui.tel "
 						+ "from user_info ui, user_relation_info uri "
-						+ "where ui.user_no=uri.target_no AND accept='Y' AND target_no=? "
+						+ "where ui.no=uri.target_no AND accept='Y' AND target_no=? "
 						+ "ORDER BY uri.no DESC ");
 
 				pstmt.setLong(1, userNo);
@@ -320,7 +354,7 @@ public class UserDAO {
 				pstmt = connection.prepareStatement(
 						"select ui.no, ui.name, ui.tel "
 						+ "from user_info ui, user_relation_info uri "
-						+ "where ui.user_no=uri.user_no AND accept='Y' AND target_no=? "
+						+ "where ui.no=uri.user_no AND accept='Y' AND target_no=? "
 						+ "ORDER BY uri.no DESC ");
 
 				pstmt.setLong(1, userNo);
@@ -330,7 +364,7 @@ public class UserDAO {
 				pstmt = connection.prepareStatement(
 						"select ui.no, ui.name, ui.tel "
 						+ "from user_info ui, user_relation_info uri "
-						+ "where ui.user_no=uri.target_no AND accept='N' AND target_no=? "
+						+ "where ui.no=uri.target_no AND accept='N' AND target_no=? "
 						+ "ORDER BY uri.no DESC ");
 
 				pstmt.setLong(1, userNo);

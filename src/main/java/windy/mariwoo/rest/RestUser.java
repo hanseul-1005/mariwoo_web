@@ -81,7 +81,20 @@ public class RestUser extends HttpServlet {
 			PrintWriter out = response.getWriter();
 			out.print(json);
 		}
-		else if("regist".equals(cmd)) {
+		else if("check_id".equals(cmd)) {
+			String id = request.getParameter("id");
+			
+			boolean check = uDao.checkId(id);
+
+			JSONObject json = new JSONObject();
+
+			json.put("result", String.valueOf(check));
+
+			response.setContentType("text/html; charset=utf-8");
+			PrintWriter out = response.getWriter();
+			out.print(json);
+		}
+		else if("sign".equals(cmd)) {
 			String id = request.getParameter("id");
 			String pw = request.getParameter("pw");
 			String tel = request.getParameter("tel");
@@ -98,6 +111,8 @@ public class RestUser extends HttpServlet {
 			boolean check = uDao.insertUser(user);
 
 			JSONObject json = new JSONObject();
+			
+			System.out.println("result : "+String.valueOf(check));
 			
 			json.put("result", String.valueOf(check));
 
