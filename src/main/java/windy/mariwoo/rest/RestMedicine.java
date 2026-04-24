@@ -163,7 +163,7 @@ public class RestMedicine extends HttpServlet {
 			long userNo = Long.parseLong(request.getParameter("user_no"));
 			long no = Long.parseLong(request.getParameter("no"));
 			
-			List<MedicineModel> listMedicine = mDao.selectListMedicine(null)
+			List<MedicineModel> listMedicine = mDao.selectListMedicine(null);
 			
 		}
 		

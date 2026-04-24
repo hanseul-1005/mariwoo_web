@@ -40,7 +40,7 @@ public class UserDAO {
 			connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 			pstmt = connection.prepareStatement(
-					"SELECT no, id, pw, tel, email, birth "
+					"SELECT no, id, pw, tel, email, birth, name "
 					+ "FROM user_info "
 					+ "WHERE id=? AND pw=? ");
 
@@ -57,6 +57,7 @@ public class UserDAO {
 				user.setTel(rs.getString("tel"));
 				user.setEmail(rs.getString("email"));
 				user.setBirth(rs.getString("birth"));
+				user.setName(rs.getString("name"));
 			}
 			
 		} catch (Exception e) {
@@ -117,14 +118,15 @@ public class UserDAO {
 			connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 			pstmt = connection.prepareStatement(
-					"INSERT INTO user_info(id, pw, tel, email, birth) "
-					+ "VALUES(?, ?, ?, ?, ?) ");
+					"INSERT INTO user_info(id, pw, tel, email, birth, name) "
+					+ "VALUES(?, ?, ?, ?, ?, ?) ");
 			
 			pstmt.setString(1, modelParam.getId());
 			pstmt.setString(2, modelParam.getPw());
 			pstmt.setString(3, modelParam.getTel());
 			pstmt.setString(4, modelParam.getEmail());
 			pstmt.setString(5, modelParam.getBirth());
+			pstmt.setString(6, modelParam.getName());
 			
 			int cnt = pstmt.executeUpdate();
 			System.out.println("cnt : "+cnt);

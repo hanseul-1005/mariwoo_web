@@ -67,10 +67,11 @@ public class RestUser extends HttpServlet {
 			
 			if(user.isCheck()) {
 				json.put("result", String.valueOf(user.isCheck()));
-				json.put("no", user.getNo());
+				json.put("no", String.valueOf(user.getNo()));
 				json.put("tel", user.getTel());
 				json.put("email", user.getEmail());
 				json.put("birth", user.getBirth());
+				json.put("name", user.getName());
 				
 			}else{
 				json.put("result", "false");
@@ -97,6 +98,7 @@ public class RestUser extends HttpServlet {
 		else if("sign".equals(cmd)) {
 			String id = request.getParameter("id");
 			String pw = request.getParameter("pw");
+			String name = request.getParameter("name");
 			String tel = request.getParameter("tel");
 			String email = request.getParameter("email");
 			String birth = request.getParameter("birth");
@@ -104,6 +106,7 @@ public class RestUser extends HttpServlet {
 			UserModel user = new UserModel();
 			user.setId(id);
 			user.setPw(pw);
+			user.setName(name);
 			user.setTel(tel);
 			user.setEmail(email);
 			user.setBirth(birth);
@@ -125,8 +128,12 @@ public class RestUser extends HttpServlet {
 			long no = Long.parseLong(request.getParameter("no"));
 			String pw = request.getParameter("pw");
 			
+			System.out.println("no : "+no);
+			System.out.println("pw : "+pw);
+			
 			boolean check = uDao.updatePw(no, pw);
 
+			System.out.println("check : "+check);
 			JSONObject json = new JSONObject();
 			
 			json.put("result", String.valueOf(check));
