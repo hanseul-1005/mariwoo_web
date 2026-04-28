@@ -57,6 +57,9 @@ public class RestMedicine extends HttpServlet {
 			long no = Long.parseLong(request.getParameter("no"));
 			int weekDay = Integer.parseInt(request.getParameter("week_day"));
 			
+			System.out.println("no : "+no);
+			System.out.println("weekDay : "+weekDay);
+			
 			MedicineModel moedlParam = new MedicineModel();
 			moedlParam.setUserNo(no);
 			moedlParam.setWeekDay(weekDay);
@@ -76,12 +79,12 @@ public class RestMedicine extends HttpServlet {
 					MedicineModel medicine = listMedicine.get(i).getListMedicine().get(j);
 					
 					JSONObject jObj2 = new JSONObject();
-					jObj2.put("schedule_no", medicine.getScheduleNo());
-					jObj2.put("intake_time", medicine.getIntakeTimeType()+" "+medicine.getIntakeTime());
-					
+					jObj2.put("schedule_no", String.valueOf(medicine.getScheduleNo()));
+					jObj2.put("intake_time", medicine.getIntakeType());
+					jObj2.put("intake_time_type", medicine.getIntakeTimeType());
+
 					jArr2.add(jObj2);
 				}
-				
 				jObj.put("listMedicine", jArr2);
 				
 				jArr.add(jObj);
@@ -96,7 +99,7 @@ public class RestMedicine extends HttpServlet {
 
 			System.out.println("result : "+result);
 			response.setContentType("text/json; charset=utf-8");
-			json.put("listMedicine", jArr);
+			json.put("listName", jArr);
 			json.put("result", result);
 
 			response.setContentType("text/html; charset=utf-8");
@@ -165,6 +168,76 @@ public class RestMedicine extends HttpServlet {
 			
 			List<MedicineModel> listMedicine = mDao.selectListMedicine(null);
 			
+		}
+		else if("relation_list".equals(cmd)) {
+			long userNo = Long.parseLong(request.getParameter("no"));
+			long targetNo = Long.parseLong(request.getParameter("target_no"));
+			String date = request.getParameter("date");
+			
+			MedicineModel medicine = new MedicineModel();
+			medicine.setUserNo(targetNo);
+			medicine.setIntakeDate(date);
+			
+			UserDAO uDao = new UserDAO();
+			
+			List<UserModel> listUser = uDao.selectListRelation(userNo, "대상자");
+			JSONArray jArrUser = new JSONArray();
+			for(int j=0; j<listUser.size(); j++) {
+				
+				UserModel user = listUser.get(j);
+
+				JSONObject jObj = new JSONObject();
+				jObj.put("no", user.getNo());
+				jObj.put("name", user.getName());
+			
+				jArrUser.add(jObj);
+				
+			}
+			
+
+			List<MedicineModel> listMedicine = mDao.selectListMedicine(medicine);
+
+			JSONArray jArrMedicine = new JSONArray();
+			for(int i=0; i<listMedicine.size(); i++) {
+
+				JSONObject jObj = new JSONObject();
+				JSONArray jArr2 = new JSONArray();
+				
+				jObj.put("name", listMedicine.get(i).getName());
+				
+				for(int j=0; j<listMedicine.get(i).getListMedicine().size(); j++) {
+
+					MedicineModel mModel = listMedicine.get(i).getListMedicine().get(j);
+					
+					JSONObject jObj2 = new JSONObject();
+					jObj2.put("schedule_no", String.valueOf(mModel.getScheduleNo()));
+					jObj2.put("intake_time", mModel.getIntakeType());
+					jObj2.put("intake_time_type", mModel.getIntakeTimeType());
+
+					jArr2.add(jObj2);
+				}
+				jObj.put("listMedicine", jArr2);
+				
+				jArrMedicine.add(jObj);
+			}
+			
+			JSONObject json = new JSONObject();
+			
+			String result = "false";
+			if(0<jArrMedicine.size()) {
+				result = "true";
+			}
+			
+			System.out.println("jArrUser : "+jArrUser.size());
+			System.out.println("result : "+result);
+			response.setContentType("text/json; charset=utf-8");
+			json.put("listName", jArrMedicine);
+			json.put("listTarget", jArrUser);
+			json.put("result", "true");
+
+			response.setContentType("text/html; charset=utf-8");
+			PrintWriter out = response.getWriter();
+			out.print(json);
 		}
 		
 	}

@@ -329,6 +329,40 @@ public class UserDAO {
 	// //////////////////////////////////////////////////
 
 	// //////////////////////////////////////////////////
+	// - 가족 신청 수락 혹은 거절
+	// //////////////////////////////////////////////////
+	public boolean deleteRelation(long no) {
+
+		boolean check = false;
+		
+		try {
+			// 데이터베이스 객체 생성
+			Class.forName(dbDriver);
+			connection = DriverManager.getConnection(jdbcUrl, id, password);
+
+			pstmt = connection.prepareStatement(
+					"DELETE FROM user_relation_info WHERE no=? ");
+			
+			pstmt.setLong(1, no);
+			
+			int cnt = pstmt.executeUpdate();
+			
+			if(cnt>0) {
+				check = true;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			// 사용한 객체 종료
+			close(rs, pstmt, connection);
+		}
+		return check;				
+	}
+			
+	// //////////////////////////////////////////////////
+
+	// //////////////////////////////////////////////////
 	// - 내 정보 열람자 목록
 	// //////////////////////////////////////////////////
 	public List<UserModel> selectListRelation(long userNo, String type) {
@@ -350,29 +384,34 @@ public class UserDAO {
 
 				pstmt.setLong(1, userNo);
 				
+				rs = pstmt.executeQuery();
+				
 			}
 			else if("대상자".equals(type)) {
 
 				pstmt = connection.prepareStatement(
-						"select ui.no, ui.name, ui.tel "
+						"select ui.no, ui.name,  ui.tel "
 						+ "from user_info ui, user_relation_info uri "
-						+ "where ui.no=uri.user_no AND accept='Y' AND target_no=? "
+						+ "where ui.no=uri.target_no  AND accept='Y' AND uri.user_no=? "
 						+ "ORDER BY uri.no DESC ");
 
 				pstmt.setLong(1, userNo);
+				
+				rs = pstmt.executeQuery();
 			} 
 			else if("신청자".equals(type)) {
 
 				pstmt = connection.prepareStatement(
 						"select ui.no, ui.name, ui.tel "
 						+ "from user_info ui, user_relation_info uri "
-						+ "where ui.no=uri.target_no AND accept='N' AND target_no=? "
+						+ "where ui.no=uri.user_no AND accept='N' AND target_no=? "
 						+ "ORDER BY uri.no DESC ");
 
 				pstmt.setLong(1, userNo);
+
+				rs = pstmt.executeQuery();
 			}
 			
-			rs = pstmt.executeQuery();
 			
 			while(rs.next()) {
 				UserModel user = new UserModel();

@@ -24,6 +24,7 @@ public class MedicineModel {
 	private boolean alarmTriggered = false;
 	private boolean intakeConfirmed = false;
 	private String alarmCreateAt = "";
+	private String intakeDate = "";
 	
 	private ArrayList<MedicineModel> listMedicine = null;
 	
@@ -135,6 +136,12 @@ public class MedicineModel {
 	}
 	public void setListMedicine(ArrayList<MedicineModel> listMedicine) {
 		this.listMedicine = listMedicine;
+	}
+	public String getIntakeDate() {
+		return intakeDate;
+	}
+	public void setIntakeDate(String intakeDate) {
+		this.intakeDate = intakeDate;
 	}
 	
 	

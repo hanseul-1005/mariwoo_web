@@ -44,7 +44,9 @@ public class RestUser extends HttpServlet {
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub// 서버 Servlet 코드
+		request.setCharacterEncoding("UTF-8");  // 요청 인코딩 설정 (이게 빠지면 받는 쪽이 깨짐)
+		response.setContentType("application/json; charset=UTF-8");  // 응답 인코딩 설정
 
 		UserDAO uDao = new UserDAO();
 		
@@ -189,10 +191,17 @@ public class RestUser extends HttpServlet {
 		}
 		
 		else if("change_accept".equals(cmd)) {
-			long relationNo = Long.parseLong(request.getParameter("relation_no"));
+			long relationNo = Long.parseLong(request.getParameter("no"));
 			String accept = request.getParameter("accept");
 			
-			boolean check = uDao.updateRelation(relationNo, accept);
+			boolean check = false;
+			
+			if("D".equals(accept)) {
+				check = uDao.deleteRelation(relationNo);
+			} else {
+				check = uDao.updateRelation(relationNo, accept);	
+			}
+			
 			
 
 			JSONObject json = new JSONObject();
@@ -205,8 +214,11 @@ public class RestUser extends HttpServlet {
 		}
 		
 		else if("relation_list".equals(cmd)) {
-			long userNo = Long.parseLong(request.getParameter("user_no"));
+			long userNo = Long.parseLong(request.getParameter("no"));
 			String type = request.getParameter("type");
+			
+			System.out.println("no : "+userNo);
+			System.out.println("type : "+type);
 			
 			List<UserModel> listUser = uDao.selectListRelation(userNo, type);
 
@@ -219,6 +231,7 @@ public class RestUser extends HttpServlet {
 				jObj.put("no", user.getNo());
 				jObj.put("name", user.getName());
 				jObj.put("tel", user.getTel());
+				jObj.put("type", type);
 				
 				jArr.add(jObj);
 			}
@@ -232,7 +245,7 @@ public class RestUser extends HttpServlet {
 
 			System.out.println("result : "+result);
 			response.setContentType("text/json; charset=utf-8");
-			json.put("listUser", jArr);
+			json.put("listRelation", jArr);
 			json.put("result", result);
 
 			response.setContentType("text/html; charset=utf-8");

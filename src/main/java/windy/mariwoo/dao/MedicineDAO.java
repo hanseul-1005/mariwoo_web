@@ -92,13 +92,14 @@ public class MedicineDAO {
 			
 			while(rs.next()) {
 				MedicineModel medicine = new MedicineModel();
+				System.out.println("rs.getLong(\"no\") : "+rs.getLong("no"));
 				medicine.setScheduleNo(rs.getLong("no"));
 				medicine.setName(rs.getString("name"));
-				
+
 				ArrayList<MedicineModel> listModel = new ArrayList<>();
 				
 				pstmt = connection.prepareStatement(
-						"SELECT ms.no, ms.medicine_no, ms.weekday, m.name, ms.intake_time, ms.intake_type, ms.alarm_enabled, ms.intake_time_type "
+						"SELECT ms.no, ms.medicine_no, ms.weekday, m.name, DATE_FORMAT(ms.intake_time, '%H:%i') as intake_time, ms.intake_type, ms.alarm_enabled, ms.intake_time_type "
 						+ "FROM medicine_schedule ms "
 						+ "JOIN medicine m ON ms.medicine_no = m.no "
 						+ "WHERE ms.weekday = ? AND ms.medicine_no = ? "
@@ -107,27 +108,25 @@ public class MedicineDAO {
 				pstmt.setInt(1, modelParam.getWeekDay());
 				pstmt.setLong(2, rs.getLong("no"));
 				
-				rs = pstmt.executeQuery();
+				ResultSet rs2 = pstmt.executeQuery();
 				
-				while(rs.next()) {
+				while(rs2.next()) {
 					MedicineModel model = new MedicineModel();
-					model.setScheduleNo(rs.getLong("no"));
+					model.setScheduleNo(rs2.getLong("no"));
 					model.setName(medicine.getName());
-					model.setIntakeTimeType(rs.getString("intake_time_type"));
-					model.setIntakeType(rs.getString("intake_type")+" "+rs.getString("intake_time"));
+					model.setIntakeTimeType(rs2.getString("intake_time_type"));
+					model.setIntakeType(rs2.getString("intake_type")+" "+rs2.getString("intake_time"));
 					
 					listModel.add(model);
 				};
 				
 				medicine.setListMedicine(listModel);
 				
-				if(0<listModel.size()) {
-					listMedicine.add(medicine);	
-				}
+				listMedicine.add(medicine);	
 				
 				
 			}
-			
+			System.out.println("listMedicine.size() : "+listMedicine.size());;
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
