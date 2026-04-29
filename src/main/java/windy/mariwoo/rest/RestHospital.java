@@ -45,6 +45,8 @@ public class RestHospital extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		request.setCharacterEncoding("UTF-8");  // 요청 인코딩 설정 (이게 빠지면 받는 쪽이 깨짐)
+		response.setContentType("application/json; charset=UTF-8");  // 응답 인코딩 설정
 
 		HospitalScheduleDAO hDao = new HospitalScheduleDAO();
 		

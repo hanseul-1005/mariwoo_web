@@ -379,7 +379,7 @@ public class UserDAO {
 				pstmt = connection.prepareStatement(
 						"select ui.no, ui.name, ui.tel "
 						+ "from user_info ui, user_relation_info uri "
-						+ "where ui.no=uri.target_no AND accept='Y' AND target_no=? "
+						+ "where ui.no=uri.user_no AND accept='Y' AND target_no=? "
 						+ "ORDER BY uri.no DESC ");
 
 				pstmt.setLong(1, userNo);
