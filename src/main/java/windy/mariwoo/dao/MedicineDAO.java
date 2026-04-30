@@ -6,6 +6,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -461,6 +462,65 @@ public class MedicineDAO {
 	        close(rs, pstmt, connection);
 	    }
 	    return cardList;
+	}
+	
+	
+	public List<Map<String, String>> getCalendarIntake(long userNo, int year, int month) {
+
+	    List<Map<String, String>> list = new ArrayList<>();
+
+	    try {
+	        Class.forName(dbDriver);
+	        connection = DriverManager.getConnection(jdbcUrl, id, password);
+	        pstmt = connection.prepareStatement(
+	        	    "SELECT " +
+	        	    "    d.intake_date, " +
+	        	    "    COUNT(ms.no) AS total, " +
+	        	    "    SUM(CASE WHEN mi.is_taken = 1 THEN 1 ELSE 0 END) AS taken " +
+	        	    "FROM ( " +
+	        	    "    SELECT DATE(?) + INTERVAL (seq) DAY AS intake_date " +
+	        	    "    FROM ( " +
+	        	    "        SELECT a.N + b.N * 10 AS seq " +
+	        	    "        FROM (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 " +
+	        	    "              UNION SELECT 5 UNION SELECT 6 UNION SELECT 7 UNION SELECT 8 UNION SELECT 9) a, " +
+	        	    "             (SELECT 0 AS N UNION SELECT 1 UNION SELECT 2 UNION SELECT 3) b " +
+	        	    "    ) nums " +
+	        	    "    WHERE DATE(?) + INTERVAL (seq) DAY <= LEAST(LAST_DAY(?), CURDATE()) " +
+	        	    ") d " +
+	        	    "JOIN medicine m ON m.user_no = ? " +
+	        	    "JOIN medicine_schedule ms ON ms.medicine_no = m.no AND ms.weekday = WEEKDAY(d.intake_date) " +
+	        	    "LEFT JOIN medicine_intake mi ON mi.schedule_no = ms.no AND mi.intake_date = d.intake_date " +
+	        	    "GROUP BY d.intake_date"
+	        	);
+
+	        	String firstDay = year + "-" + String.format("%02d", month) + "-01";
+	        	pstmt.setString(1, firstDay);
+	        	pstmt.setString(2, firstDay);
+	        	pstmt.setString(3, firstDay);
+	        	pstmt.setLong(4, userNo);
+	        	
+	        rs = pstmt.executeQuery();
+
+	        while (rs.next()) {
+	            String date  = rs.getString("intake_date");
+	            int    total = rs.getInt("total");
+	            int    taken = rs.getInt("taken");
+
+	            String status = (total == taken) ? "all" : "partial";
+
+	            Map<String, String> item = new HashMap<>();
+	            item.put("date",   date);
+	            item.put("status", status);
+	            list.add(item);
+	        }
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	    } finally {
+	        close(rs, pstmt, connection);
+	    }
+
+	    return list;
 	}
 	/*
 	 * // 스케줄 전체 삭제 후 재등록 (수정) public boolean updateSchedule(long medicineNo,

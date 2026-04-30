@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -454,6 +455,29 @@ public class RestMedicine extends HttpServlet {
 		            }
 		            cardJson.put("schedules", scheduleArray);
 		            jsonArray.add(cardJson);
+		        }
+
+		        response.setContentType("application/json; charset=utf-8");
+		        response.getWriter().print(jsonArray);
+
+		    } catch (Exception e) {
+		        e.printStackTrace();
+		    }
+		}
+		else if ("get_calendar_intake".equals(cmd)) {
+		    try {
+		        long   userNo = Long.parseLong(request.getParameter("user_no"));
+		        int    year   = Integer.parseInt(request.getParameter("year"));
+		        int    month  = Integer.parseInt(request.getParameter("month"));
+
+		        List<Map<String, String>> calendarList = mDao.getCalendarIntake(userNo, year, month);
+
+		        JSONArray jsonArray = new JSONArray();
+		        for (Map<String, String> item : calendarList) {
+		            JSONObject obj = new JSONObject();
+		            obj.put("date",   item.get("date"));   // "2025-02-13"
+		            obj.put("status", item.get("status")); // "all" or "partial"
+		            jsonArray.add(obj);
 		        }
 
 		        response.setContentType("application/json; charset=utf-8");
