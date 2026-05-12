@@ -71,49 +71,59 @@ public class RestMedicine extends HttpServlet {
 		// 응답: { result, listName: [{name, medicine_no, listMedicine: [...]}] }
 		// ========================================================
 		if ("list".equals(cmd)) {
-			long no      = Long.parseLong(request.getParameter("no"));
-			int  weekDay = Integer.parseInt(request.getParameter("week_day"));
+			try {
+				long no      = Long.parseLong(request.getParameter("no"));
+				int  weekDay = Integer.parseInt(request.getParameter("week_day"));
 
-			System.out.println("no : " + no);
-			System.out.println("weekDay : " + weekDay);
+				System.out.println("no : " + no);
+				System.out.println("weekDay : " + weekDay);
 
-			MedicineModel modelParam = new MedicineModel();
-			modelParam.setUserNo(no);
-			modelParam.setWeekDay(weekDay);
+				MedicineModel modelParam = new MedicineModel();
+				modelParam.setUserNo(no);
+				modelParam.setWeekDay(weekDay);
 
-			List<MedicineModel> listMedicine = mDao.selectListMedicine(modelParam);
+				List<MedicineModel> listMedicine = mDao.selectListMedicine(modelParam);
 
-			JSONArray jArr = new JSONArray();
-			for (int i = 0; i < listMedicine.size(); i++) {
-				JSONObject jObj  = new JSONObject();
-				JSONArray  jArr2 = new JSONArray();
+				JSONArray jArr = new JSONArray();
+				for (int i = 0; i < listMedicine.size(); i++) {
+					JSONObject jObj  = new JSONObject();
+					JSONArray  jArr2 = new JSONArray();
 
-				jObj.put("name",        listMedicine.get(i).getName());
-				jObj.put("medicine_no", listMedicine.get(i).getNo());
+					jObj.put("name",        listMedicine.get(i).getName());
+					jObj.put("medicine_no", listMedicine.get(i).getNo());
 
-				// 스케줄 목록 (시간대별)
-				for (int j = 0; j < listMedicine.get(i).getListMedicine().size(); j++) {
-					MedicineModel medicine = listMedicine.get(i).getListMedicine().get(j);
+					// 스케줄 목록 (시간대별)
+					for (int j = 0; j < listMedicine.get(i).getListMedicine().size(); j++) {
+						MedicineModel medicine = listMedicine.get(i).getListMedicine().get(j);
 
-					JSONObject jObj2 = new JSONObject();
-					jObj2.put("schedule_no",      String.valueOf(medicine.getScheduleNo()));
-					jObj2.put("intake_time",      medicine.getIntakeType());
-					jObj2.put("intake_time_type", medicine.getIntakeTimeType());
-					jArr2.add(jObj2);
+						JSONObject jObj2 = new JSONObject();
+						jObj2.put("schedule_no",      String.valueOf(medicine.getScheduleNo()));
+						jObj2.put("intake_time",      medicine.getIntakeType());
+						jObj2.put("intake_time_type", medicine.getIntakeTimeType());
+						jArr2.add(jObj2);
+					}
+					jObj.put("listMedicine", jArr2);
+					jArr.add(jObj);
 				}
-				jObj.put("listMedicine", jArr2);
-				jArr.add(jObj);
+
+				JSONObject json   = new JSONObject();
+				String     result = (jArr.size() > 0) ? "true" : "false";
+
+				System.out.println("result : " + result);
+				json.put("listName", jArr);
+				json.put("result",   result);
+
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(json);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				JSONObject errJson = new JSONObject();
+				errJson.put("result", "false");
+				errJson.put("listName", new JSONArray());
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(errJson);
 			}
-
-			JSONObject json   = new JSONObject();
-			String     result = (jArr.size() > 0) ? "true" : "false";
-
-			System.out.println("result : " + result);
-			json.put("listName", jArr);
-			json.put("result",   result);
-
-			response.setContentType("text/html; charset=utf-8");
-			response.getWriter().print(json);
 		}
 
 		// ========================================================
@@ -214,6 +224,12 @@ public class RestMedicine extends HttpServlet {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				// 예외 발생 시에도 반드시 JSON 응답 반환 (빈 body 방지)
+				JSONObject errJson = new JSONObject();
+				errJson.put("result", "false");
+				errJson.put("message", e.getMessage());
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(errJson);
 			}
 		}
 
@@ -361,6 +377,9 @@ public class RestMedicine extends HttpServlet {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				// 예외 발생 시에도 빈 배열 반환 (빈 body 방지)
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(new JSONArray());
 			}
 		}
 
@@ -385,6 +404,11 @@ public class RestMedicine extends HttpServlet {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				// 예외 발생 시에도 JSON 응답 반환
+				JSONObject errJson = new JSONObject();
+				errJson.put("result", "false");
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(errJson);
 			}
 		}
 
@@ -485,6 +509,9 @@ public class RestMedicine extends HttpServlet {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				// 예외 발생 시 빈 배열 반환
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(new JSONArray());
 			}
 		}
 
@@ -514,6 +541,9 @@ public class RestMedicine extends HttpServlet {
 
 			} catch (Exception e) {
 				e.printStackTrace();
+				// 예외 발생 시 빈 배열 반환
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(new JSONArray());
 			}
 		}
 
@@ -524,15 +554,25 @@ public class RestMedicine extends HttpServlet {
 		// del='Y'로 마킹 → 모든 조회에서 자동 필터링됨
 		// ========================================================
 		else if ("delete_medicine".equals(cmd)) {
-			long medicineNo = Long.parseLong(request.getParameter("medicine_no"));
+			try {
+				long medicineNo = Long.parseLong(request.getParameter("medicine_no"));
 
-			mDao.deleteMedicine(medicineNo);
+				mDao.deleteMedicine(medicineNo);
 
-			JSONObject json = new JSONObject();
-			json.put("result", "true");
+				JSONObject json = new JSONObject();
+				json.put("result", "true");
 
-			response.setContentType("application/json; charset=utf-8");
-			response.getWriter().print(json);
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(json);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				// 예외 발생 시에도 JSON 응답 반환 (빈 body 방지)
+				JSONObject errJson = new JSONObject();
+				errJson.put("result", "false");
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(errJson);
+			}
 		}
 	}
 
