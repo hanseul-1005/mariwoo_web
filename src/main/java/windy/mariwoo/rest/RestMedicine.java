@@ -132,64 +132,86 @@ public class RestMedicine extends HttpServlet {
 		// 응답: { result, medicine_no }
 		// ========================================================
 		else if ("add_medicine".equals(cmd)) {
+			try {
+				long   userNo         = Long.parseLong(request.getParameter("user_no"));
+				String name           = request.getParameter("name");
+				String strWeekday     = request.getParameter("weekday"); // 예: "0,2,4" (월,수,금)
+				String intakeTimeType1 = request.getParameter("intake_time_type1");
+				String intakeTime1    = request.getParameter("intake_time1");
+				String intakeType1    = request.getParameter("intake_type1");
+				String intakeTimeType2 = request.getParameter("intake_time_type2");
+				String intakeTime2    = request.getParameter("intake_time2");
+				String intakeType2    = request.getParameter("intake_type2");
+				String intakeTimeType3 = request.getParameter("intake_time_type3");
+				String intakeTime3    = request.getParameter("intake_time3");
+				String intakeType3    = request.getParameter("intake_type3");
+				String intakeTimeType4 = request.getParameter("intake_time_type4");
+				String intakeTime4    = request.getParameter("intake_time4");
+				String intakeType4    = request.getParameter("intake_type4");
 
-			long   userNo         = Long.parseLong(request.getParameter("user_no"));
-			String name           = request.getParameter("name");
-			String strWeekday     = request.getParameter("weekday"); // 예: "0,2,4" (월,수,금)
-			String intakeTimeType1 = request.getParameter("intake_time_type1");
-			String intakeTime1    = request.getParameter("intake_time1");
-			String intakeType1    = request.getParameter("intake_type1");
-			String intakeTimeType2 = request.getParameter("intake_time_type2");
-			String intakeTime2    = request.getParameter("intake_time2");
-			String intakeType2    = request.getParameter("intake_type2");
-			String intakeTimeType3 = request.getParameter("intake_time_type3");
-			String intakeTime3    = request.getParameter("intake_time3");
-			String intakeType3    = request.getParameter("intake_type3");
-			String intakeTimeType4 = request.getParameter("intake_time_type4");
-			String intakeTime4    = request.getParameter("intake_time4");
-			String intakeType4    = request.getParameter("intake_type4");
+				// 1. 약 기본 정보 등록 (medicine 테이블)
+				MedicineModel medicine = new MedicineModel();
+				medicine.setUserNo(userNo);
+				medicine.setName(name);
+				long no = mDao.insertMedicine(medicine); // 등록 후 PK 반환
 
-			// 1. 약 기본 정보 등록 (medicine 테이블)
-			MedicineModel medicine = new MedicineModel();
-			medicine.setUserNo(userNo);
-			medicine.setName(name);
-			long no = mDao.insertMedicine(medicine); // 등록 후 PK 반환
-
-			// 요일 파싱: "0,2,4" → [0, 2, 4]
-			String[] days = strWeekday.split(",");
-
-			// 시간대별 데이터 배열로 관리
-			String[] intakeTimeTypes = { intakeTimeType1, intakeTimeType2, intakeTimeType3, intakeTimeType4 };
-			String[] intakeTimes     = { intakeTime1,     intakeTime2,     intakeTime3,     intakeTime4     };
-			String[] intakeTypes     = { intakeType1,     intakeType2,     intakeType3,     intakeType4     };
-
-			// 2. 선택된 요일 × 입력된 시간대 조합으로 스케줄 INSERT
-			for (String day : days) {
-				if (day == null || day.trim().isEmpty()) continue;
-
-				int weekDay = Integer.parseInt(day.trim());
-
-				for (int i = 0; i < 4; i++) {
-					if (intakeTimes[i] == null || intakeTimes[i].isEmpty()) continue; // 비어있는 시간대 skip
-
-					MedicineModel schedule = new MedicineModel();
-					schedule.setNo(no);                    // 방금 등록한 약 번호
-					schedule.setWeekDay(weekDay);
-					schedule.setIntakeTimeType(intakeTimeTypes[i]);
-					schedule.setIntakeTime(intakeTimes[i]);
-					schedule.setIntakeType(intakeTypes[i]);
-
-					mDao.insertSchedule(schedule);
+				// insertMedicine 실패 시 (-1 반환) 스케줄 INSERT 시도 금지
+				// no <= 0 이면 medicine 테이블에 행이 없으므로 FK 위반 발생
+				if (no <= 0) {
+					System.out.println("insertMedicine 실패: no=" + no + ", name=" + name);
+					JSONObject errJson = new JSONObject();
+					errJson.put("result",      "false");
+					errJson.put("medicine_no", -1);
+					response.setContentType("application/json; charset=utf-8");
+					response.getWriter().print(errJson);
+					return;
 				}
+
+				// 요일 파싱: "0,2,4" → [0, 2, 4]
+				String[] days = strWeekday.split(",");
+
+				// 시간대별 데이터 배열로 관리
+				String[] intakeTimeTypes = { intakeTimeType1, intakeTimeType2, intakeTimeType3, intakeTimeType4 };
+				String[] intakeTimes     = { intakeTime1,     intakeTime2,     intakeTime3,     intakeTime4     };
+				String[] intakeTypes     = { intakeType1,     intakeType2,     intakeType3,     intakeType4     };
+
+				// 2. 선택된 요일 × 입력된 시간대 조합으로 스케줄 INSERT
+				for (String day : days) {
+					if (day == null || day.trim().isEmpty()) continue;
+
+					int weekDay = Integer.parseInt(day.trim());
+
+					for (int i = 0; i < 4; i++) {
+						if (intakeTimes[i] == null || intakeTimes[i].isEmpty()) continue; // 비어있는 시간대 skip
+
+						MedicineModel schedule = new MedicineModel();
+						schedule.setNo(no);                     // 방금 등록한 약 번호 (FK)
+						schedule.setWeekDay(weekDay);
+						schedule.setIntakeTimeType(intakeTimeTypes[i]);
+						schedule.setIntakeTime(intakeTimes[i]);
+						schedule.setIntakeType(intakeTypes[i]);
+
+						mDao.insertSchedule(schedule);
+					}
+				}
+
+				// 3. 결과 반환 (medicine_no를 앱으로 전달 → 알람 등록에 사용)
+				JSONObject json = new JSONObject();
+				json.put("result",      "true");
+				json.put("medicine_no", no); // 앱에서 AlarmHelper.setAlarm() 호출에 필요
+
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(json);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				// 예외 발생 시에도 JSON 응답 반환
+				JSONObject errJson = new JSONObject();
+				errJson.put("result",      "false");
+				errJson.put("medicine_no", -1);
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(errJson);
 			}
-
-			// 3. 결과 반환 (medicine_no를 앱으로 전달 → 알람 등록에 사용)
-			JSONObject json = new JSONObject();
-			json.put("result",      "true");
-			json.put("medicine_no", no); // 앱에서 AlarmHelper.setAlarm() 호출에 필요
-
-			response.setContentType("text/html; charset=utf-8");
-			response.getWriter().print(json);
 		}
 
 		// ========================================================

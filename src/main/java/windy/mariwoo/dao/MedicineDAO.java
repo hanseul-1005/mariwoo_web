@@ -53,24 +53,30 @@ public class MedicineDAO {
 			connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 			// del='N' : 삭제되지 않은 정상 상태로 초기화 (soft delete 방식)
+			// RETURN_GENERATED_KEYS: executeUpdate 후 자동 생성된 PK를 바로 조회
 			pstmt = connection.prepareStatement(
-					"INSERT INTO medicine(name, user_no, del) VALUES(?, ?, 'N')");
+					"INSERT INTO medicine(name, user_no, del) VALUES(?, ?, 'N')",
+					java.sql.Statement.RETURN_GENERATED_KEYS);
 
 			pstmt.setString(1, modelParam.getName());   // 약 이름
 			pstmt.setLong(2, modelParam.getUserNo());   // 등록한 사용자 번호
 
-			pstmt.executeUpdate();
+			int affected = pstmt.executeUpdate();
 
-			// LAST_INSERT_ID(): 현재 커넥션에서 마지막으로 INSERT된 PK를 가져옴
-			// ORDER BY DESC LIMIT 1 방식은 동시 요청 시 다른 사용자의 no를 반환할 수 있어 위험
-			pstmt = connection.prepareStatement("SELECT LAST_INSERT_ID() AS no");
-			rs    = pstmt.executeQuery();
-
-			if (rs.next()) {
-				no = rs.getLong("no");
+			if (affected > 0) {
+				// INSERT 성공: 자동 생성된 PK 조회 (LAST_INSERT_ID() 별도 쿼리 불필요)
+				rs = pstmt.getGeneratedKeys();
+				if (rs.next()) {
+					no = rs.getLong(1);
+					System.out.println("insertMedicine 성공: no=" + no + ", name=" + modelParam.getName());
+				}
+			} else {
+				System.out.println("insertMedicine 실패: affected=0, name=" + modelParam.getName());
 			}
 
 		} catch (Exception e) {
+			System.err.println("insertMedicine 예외 발생: name=" + modelParam.getName()
+					+ ", userNo=" + modelParam.getUserNo());
 			e.printStackTrace();
 		} finally {
 			close(rs, pstmt, connection);
