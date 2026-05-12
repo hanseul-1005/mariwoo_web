@@ -114,7 +114,7 @@ public class MedicineDAO {
 			pstmt = connection.prepareStatement(
 					"select no, name, user_no "
 					+ "from medicine m "
-					+ "where user_no = ? "
+					+ "where user_no = ? AND del = 'N' "
 					+ "ORDER BY m.no ASC ");
 
 			pstmt.setLong(1, modelParam.getUserNo());
@@ -222,7 +222,7 @@ public class MedicineDAO {
 	                 "JOIN medicine m ON ms.medicine_no = m.no " +
 	                 "LEFT JOIN medicine_intake mi ON ms.no = mi.schedule_no " +
 	                 "AND mi.intake_date = ? " +
-	                 "WHERE m.user_no = ? AND ms.weekday = ? " +
+	                 "WHERE m.user_no = ? AND ms.weekday = ? AND m.del = 'N' " +
 	                 "ORDER BY m.no, ms.intake_time";
 
 	    try {
@@ -419,7 +419,7 @@ public class MedicineDAO {
 	            "LEFT JOIN medicine_intake mi " +
 	            "  ON mi.schedule_no = ms.no " +
 	            "  AND mi.intake_date = ? " +                   // ✅ 날짜 필터
-	            "WHERE m.user_no = ? " +                        // ✅ 대상자 필터
+	            "WHERE m.user_no = ? AND m.del = 'N' " +                        // ✅ 대상자 필터
 	            "ORDER BY m.no, ms.intake_time"
 	        );
 
@@ -487,7 +487,7 @@ public class MedicineDAO {
 	        	    "    ) nums " +
 	        	    "    WHERE DATE(?) + INTERVAL (seq) DAY <= LEAST(LAST_DAY(?), CURDATE()) " +
 	        	    ") d " +
-	        	    "JOIN medicine m ON m.user_no = ? " +
+	        	    "JOIN medicine m ON m.user_no = ? AND m.del = 'N' " +
 	        	    "JOIN medicine_schedule ms ON ms.medicine_no = m.no AND ms.weekday = WEEKDAY(d.intake_date) " +
 	        	    "LEFT JOIN medicine_intake mi ON mi.schedule_no = ms.no AND mi.intake_date = d.intake_date " +
 	        	    "GROUP BY d.intake_date"
@@ -522,28 +522,33 @@ public class MedicineDAO {
 
 	    return list;
 	}
-	/*
-	 * // 스케줄 전체 삭제 후 재등록 (수정) public boolean updateSchedule(long medicineNo,
-	 * List<MedicineModel> schedules) { try { Class.forName(dbDriver); connection =
-	 * DriverManager.getConnection(jdbcUrl, id, password);
-	 * 
-	 * // 기존 스케줄 전체 삭제 pstmt = connection.prepareStatement(
-	 * "DELETE FROM medicine_schedule WHERE medicine_no = ?"); pstmt.setLong(1,
-	 * medicineNo); pstmt.executeUpdate();
-	 * 
-	 * // 새 스케줄 등록 for (MedicineModel schedule : schedules) { pstmt =
-	 * connection.prepareStatement(
-	 * "INSERT INTO medicine_schedule(medicine_no, weekday, intake_time_type, intake_time, intake_type) "
-	 * + "VALUES(?, ?, ?, ?, ?)"); pstmt.setLong(1, medicineNo); pstmt.setInt(2,
-	 * schedule.getWeekDay()); pstmt.setString(3, schedule.getIntakeTimeType());
-	 * pstmt.setString(4, schedule.getIntakeTime()); pstmt.setString(5,
-	 * schedule.getIntakeType()); pstmt.executeUpdate(); }
-	 * 
-	 * return true;
-	 * 
-	 * } catch (Exception e) { e.printStackTrace(); return false; } finally {
-	 * close(rs, pstmt, connection); } }
-	 */
+
+	// ✅ 약 알람 전체 삭제
+	public void deleteMedicine(long medicineNo) {
+	    try {
+	        Class.forName(dbDriver);
+	        connection = DriverManager.getConnection(jdbcUrl, id, password);
+	        connection.setAutoCommit(false); // 트랜잭션 시작
+
+	        pstmt = connection.prepareStatement(
+	                "UPDATE medicine SET del='Y' WHERE no=?");
+	        pstmt.setLong(1, medicineNo);
+	        pstmt.executeUpdate();
+
+	        connection.commit(); // 둘 다 성공 시 커밋
+
+	    } catch (Exception e) {
+	        e.printStackTrace();
+	        try {
+	            if (connection != null) connection.rollback(); // 실패 시 롤백
+	        } catch (Exception re) {
+	            re.printStackTrace();
+	        }
+	    } finally {
+	        close(rs, pstmt, connection);
+	    }
+	}
+	
 	////////////////////////////////////////////////////
 	//	- 데이터베이스 관련 객체 정리 -
 	public void close(ResultSet rs, PreparedStatement pstmt, Connection conn) {
