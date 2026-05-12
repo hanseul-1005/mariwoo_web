@@ -44,16 +44,15 @@ public class MedicineDAO {
 	        connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 	        pstmt = connection.prepareStatement(
-	                "INSERT INTO medicine(name, user_no) VALUES(?, ?)");
+	                "INSERT INTO medicine(name, user_no, del) VALUES(?, ?, 'N')");
 
 	        pstmt.setString(1, modelParam.getName());
 	        pstmt.setLong(2, modelParam.getUserNo());
 
 	        pstmt.executeUpdate();
 
-	        // 자동생성된 no 가져오기
-	        pstmt = connection.prepareStatement(
-	                "SELECT no FROM medicine ORDER BY no DESC LIMIT 1");
+	        // 자동생성된 no 가져오기 (LAST_INSERT_ID: 동시 삽입 시에도 안전)
+	        pstmt = connection.prepareStatement("SELECT LAST_INSERT_ID() AS no");
 
 	        rs = pstmt.executeQuery();
 
@@ -140,7 +139,7 @@ public class MedicineDAO {
 				pstmt.setLong(2, rs.getLong("no"));
 				
 				ResultSet rs2 = pstmt.executeQuery();
-				
+
 				while(rs2.next()) {
 				    MedicineModel model = new MedicineModel();
 				    model.setScheduleNo(rs2.getLong("no"));
@@ -150,6 +149,7 @@ public class MedicineDAO {
 
 				    listModel.add(model);
 				}
+				rs2.close();
 
 				medicine.setListMedicine(listModel);
 
