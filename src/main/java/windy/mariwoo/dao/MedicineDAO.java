@@ -617,6 +617,52 @@ public class MedicineDAO {
 	}
 
 	// ==========================================================
+	// 전체 알람 목록 조회 (로그인 후 알람 복원용)
+	// - 해당 계정의 삭제되지 않은(del='N') 약 중 alarm_enabled=1인 스케줄 전체 반환
+	// - 앱에서 AlarmHelper.setAlarm()을 반복 호출해 AlarmManager에 재등록
+	// 반환: [medicine_no, name, weekday, intake_time_type, intake_time, intake_type]
+	// ==========================================================
+	public List<MedicineModel> getAllAlarms(long userNo) {
+		List<MedicineModel> list = new ArrayList<>();
+
+		String sql = "SELECT m.no AS medicine_no, m.name AS medicine_name, " +
+				"ms.weekday, ms.intake_time_type, ms.intake_time, ms.intake_type " +
+				"FROM medicine m " +
+				"JOIN medicine_schedule ms ON ms.medicine_no = m.no " +
+				"WHERE m.user_no = ? AND m.del = 'N' AND ms.alarm_enabled = 1 " +
+				"ORDER BY ms.weekday, ms.intake_time";
+
+		try {
+			Class.forName(dbDriver);
+			connection = DriverManager.getConnection(jdbcUrl, id, password);
+			pstmt = connection.prepareStatement(sql);
+
+			pstmt.setLong(1, userNo); // 사용자 번호
+
+			rs = pstmt.executeQuery();
+
+			while (rs.next()) {
+				MedicineModel model = new MedicineModel();
+				model.setNo(rs.getLong("medicine_no"));              // 약 번호
+				model.setName(rs.getString("medicine_name"));        // 약 이름
+				model.setWeekDay(rs.getInt("weekday"));              // 요일 (0:월 ~ 6:일)
+				model.setIntakeTimeType(rs.getString("intake_time_type")); // 아침/점심/저녁/취침 전
+				model.setIntakeTime(rs.getString("intake_time"));    // "HH:mm:ss" (앱에서 HH:mm으로 자름)
+				model.setIntakeType(rs.getString("intake_type"));    // 식전/식후
+				list.add(model);
+			}
+
+			System.out.println("getAllAlarms - userNo=" + userNo + ", count=" + list.size());
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(rs, pstmt, connection);
+		}
+		return list;
+	}
+
+	// ==========================================================
 	// DB 리소스 정리 (ResultSet → PreparedStatement → Connection 순으로 닫기)
 	// finally 블록에서 항상 호출하여 커넥션 누수 방지
 	// ==========================================================

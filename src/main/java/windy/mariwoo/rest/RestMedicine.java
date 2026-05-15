@@ -37,6 +37,7 @@ import windy.mariwoo.dao.MedicineDAO;
  *   get_family_intake_list - 가족 복용 내역 조회
  *   get_calendar_intake - 달력 복용 현황 조회
  *   delete_medicine     - 약 삭제 (soft delete)
+ *   get_all_alarms      - 전체 알람 목록 조회 (로그인 후 알람 복원용)
  */
 @WebServlet(description = "RestMedicine", urlPatterns = { "/medicine.windy" })
 public class RestMedicine extends HttpServlet {
@@ -566,6 +567,46 @@ public class RestMedicine extends HttpServlet {
 				// 예외 발생 시 빈 배열 반환
 				response.setContentType("application/json; charset=utf-8");
 				response.getWriter().print(new JSONArray());
+			}
+		}
+
+		// ========================================================
+		// 전체 알람 목록 조회 (로그인 후 알람 복원용)
+		// 요청: no(user_no)
+		// 응답: { result, list: [{medicine_no, medicine_name, weekday, intake_time_type, intake_time, intake_type}] }
+		// ========================================================
+		else if ("get_all_alarms".equals(cmd)) {
+			try {
+				long userNo = Long.parseLong(request.getParameter("no"));
+
+				List<MedicineModel> alarmList = mDao.getAllAlarms(userNo);
+
+				JSONArray jArr = new JSONArray();
+				for (MedicineModel model : alarmList) {
+					JSONObject jObj = new JSONObject();
+					jObj.put("medicine_no",        model.getNo());
+					jObj.put("medicine_name",      model.getName());
+					jObj.put("weekday",            model.getWeekDay());
+					jObj.put("intake_time_type",   model.getIntakeTimeType());
+					jObj.put("intake_time",        model.getIntakeTime()); // "HH:mm:ss"
+					jObj.put("intake_type",        model.getIntakeType());
+					jArr.add(jObj);
+				}
+
+				JSONObject json = new JSONObject();
+				json.put("result", jArr.size() > 0 ? "true" : "false");
+				json.put("list",   jArr);
+
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(json);
+
+			} catch (Exception e) {
+				e.printStackTrace();
+				JSONObject errJson = new JSONObject();
+				errJson.put("result", "false");
+				errJson.put("list",   new JSONArray());
+				response.setContentType("application/json; charset=utf-8");
+				response.getWriter().print(errJson);
 			}
 		}
 
