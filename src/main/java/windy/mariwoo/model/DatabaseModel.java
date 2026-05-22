@@ -4,7 +4,6 @@ public class DatabaseModel {
 	
 	private String dbDriver = "org.mariadb.jdbc.Driver";
     //private String jdbcUrl = "jdbc:mariadb://localhost:3306/mariwoo";
-
 	private String jdbcUrl = "jdbc:mariadb://mariwoodb.windygnt.myds.me:33306/mariwoo";
 	private String user = "mariwoo";         
 	private String password = "windy0136";
