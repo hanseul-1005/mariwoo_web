@@ -377,7 +377,7 @@ public class UserDAO {
 			if("열람자".equals(type)) {
 
 				pstmt = connection.prepareStatement(
-						"select ui.no, ui.name, ui.tel "
+						"select ui.no, ui.name, ui.tel, uri.no as relation_no "
 						+ "from user_info ui, user_relation_info uri "
 						+ "where ui.no=uri.user_no AND accept='Y' AND target_no=? "
 						+ "ORDER BY uri.no DESC ");
@@ -390,7 +390,7 @@ public class UserDAO {
 			else if("대상자".equals(type)) {
 
 				pstmt = connection.prepareStatement(
-						"select ui.no, ui.name,  ui.tel "
+						"select ui.no, ui.name,  ui.tel, uri.no as relation_no "
 						+ "from user_info ui, user_relation_info uri "
 						+ "where ui.no=uri.target_no  AND accept='Y' AND uri.user_no=? "
 						+ "ORDER BY uri.no DESC ");
@@ -402,7 +402,7 @@ public class UserDAO {
 			else if("신청자".equals(type)) {
 
 				pstmt = connection.prepareStatement(
-						"select ui.no, ui.name, ui.tel "
+						"select ui.no, ui.name, ui.tel, uri.no as relation_no "
 						+ "from user_info ui, user_relation_info uri "
 						+ "where ui.no=uri.user_no AND accept='N' AND target_no=? "
 						+ "ORDER BY uri.no DESC ");
@@ -418,6 +418,7 @@ public class UserDAO {
 				user.setNo(rs.getLong("ui.no"));
 				user.setName(rs.getString("name"));
 				user.setTel(rs.getString("tel"));
+				user.setRelationNo(rs.getLong("relation_no"));
 				
 				listUser.add(user);
 			}

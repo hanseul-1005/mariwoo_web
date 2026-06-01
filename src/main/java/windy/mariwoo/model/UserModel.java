@@ -11,6 +11,7 @@ public class UserModel {
 	private String birth = "";
 	
 	private long targetId = -1;
+	private long relationNo = -1;
 	private String accept = "N";
 	
 	private boolean check = false;
@@ -74,6 +75,12 @@ public class UserModel {
 	}
 	public void setCheck(boolean check) {
 		this.check = check;
+	}
+	public long getRelationNo() {
+		return relationNo;
+	}
+	public void setRelationNo(long relationNo) {
+		this.relationNo = relationNo;
 	} 
 	
 	

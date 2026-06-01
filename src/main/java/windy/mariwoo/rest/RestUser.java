@@ -195,7 +195,8 @@ public class RestUser extends HttpServlet {
 		else if("change_accept".equals(cmd)) {
 			long relationNo = Long.parseLong(request.getParameter("no"));
 			String accept = request.getParameter("accept");
-			
+			System.out.println("relationNo : "+relationNo);
+			System.out.println("accept : "+accept);
 			boolean check = false;
 			
 			if("D".equals(accept)) {
@@ -204,7 +205,8 @@ public class RestUser extends HttpServlet {
 				check = uDao.updateRelation(relationNo, accept);	
 			}
 			
-			
+
+			System.out.println("check : "+check);
 
 			JSONObject json = new JSONObject();
 			
@@ -234,6 +236,7 @@ public class RestUser extends HttpServlet {
 				jObj.put("name", user.getName());
 				jObj.put("tel", user.getTel());
 				jObj.put("type", type);
+				jObj.put("relation_no", user.getRelationNo());
 				
 				jArr.add(jObj);
 			}
