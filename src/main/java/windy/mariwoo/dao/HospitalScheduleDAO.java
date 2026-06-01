@@ -48,7 +48,7 @@ public class HospitalScheduleDAO {
 
 			pstmt = connection.prepareStatement(
 					"SELECT no, user_no, name, time, notification_time, memo, created_at, updated_at "
-					+ "FROM hospital_schedule_info "
+					+ "FROM hospital_schedule "
 					+ "WHERE user_no = ? "
 					+ whereSQL
 					+ "ORDER BY time ASC ");
@@ -96,7 +96,7 @@ public class HospitalScheduleDAO {
 
 			pstmt = connection.prepareStatement(
 					"SELECT no, user_no, name, time, notification_time, memo, created_at, updated_at "
-					+ "FROM hospital_schedule_info "
+					+ "FROM hospital_schedule "
 					+ "WHERE no=? ");
 
 			pstmt.setLong(1, no);
