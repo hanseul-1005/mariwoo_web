@@ -37,7 +37,7 @@ public class HospitalScheduleDAO {
 		
 		if(modelParam.getStartAt() != null && !modelParam.getStartAt().isEmpty()
 		&& modelParam.getEndAt() != null && !modelParam.getEndAt().isEmpty()) {
-			whereSQL = " AND date(time) BETWEEN '"
+			whereSQL = " AND date(`time`) BETWEEN '"
 					+ modelParam.getStartAt() + "' AND '" + modelParam.getEndAt() + "' ";
 		}
 		
@@ -47,11 +47,11 @@ public class HospitalScheduleDAO {
 			connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 			pstmt = connection.prepareStatement(
-					"SELECT no, user_no, name, time, notification_time, memo, created_at, updated_at "
+					"SELECT no, user_no, name, `time`, notification_time, memo, created_at, updated_at "
 					+ "FROM hospital_schedule "
 					+ "WHERE user_no = ? "
 					+ whereSQL
-					+ "ORDER BY time ASC ");
+					+ "ORDER BY `time` ASC ");
 
 			pstmt.setLong(1, modelParam.getUserNo());
 			
@@ -95,7 +95,7 @@ public class HospitalScheduleDAO {
 			connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 			pstmt = connection.prepareStatement(
-					"SELECT no, user_no, name, time, notification_time, memo, created_at, updated_at "
+					"SELECT no, user_no, name, `time`, notification_time, memo, created_at, updated_at "
 					+ "FROM hospital_schedule "
 					+ "WHERE no=? ");
 
@@ -138,7 +138,7 @@ public class HospitalScheduleDAO {
 			connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 			pstmt = connection.prepareStatement(
-					"INSERT INTO hospital_schedule (user_no, name, time, notification_time, memo) "
+					"INSERT INTO hospital_schedule (user_no, name, `time`, notification_time, memo) "
 					+ "VALUES (?, ?, ?, DATE_SUB(?, INTERVAL 1 HOUR), ?) ");
 
 			pstmt.setLong(1, modelParam.getUserNo());
@@ -178,7 +178,7 @@ public class HospitalScheduleDAO {
 
 			pstmt = connection.prepareStatement(
 					"UPDATE hospital_schedule "
-					+ "SET name=?, time=?, notification_time=DATE_SUB(?, INTERVAL 1 HOUR), memo=? "
+					+ "SET name=?, `time`=?, notification_time=DATE_SUB(?, INTERVAL 1 HOUR), memo=? "
 					+ "WHERE no=? ");
 
 			pstmt.setString(1, modelParam.getName());
