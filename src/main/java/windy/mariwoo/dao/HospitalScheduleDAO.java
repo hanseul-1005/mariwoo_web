@@ -128,18 +128,18 @@ public class HospitalScheduleDAO {
 	// //////////////////////////////////////////////////
 	// - 스케쥴 등록
 	// //////////////////////////////////////////////////
-	public boolean insertHospitalSchedule(HospitalScheduleModel modelParam) {
+	public long insertHospitalSchedule(HospitalScheduleModel modelParam) {
 
-		boolean check = false;
-		
+		long insertedNo = -1;
+
 		try {
-			// 데이터베이스 객체 생성
 			Class.forName(dbDriver);
 			connection = DriverManager.getConnection(jdbcUrl, id, password);
 
 			pstmt = connection.prepareStatement(
 					"INSERT INTO hospital_schedule (user_no, name, `time`, notification_time, memo) "
-					+ "VALUES (?, ?, ?, DATE_SUB(?, INTERVAL 1 HOUR), ?) ");
+					+ "VALUES (?, ?, ?, DATE_SUB(?, INTERVAL 1 HOUR), ?) ",
+					java.sql.Statement.RETURN_GENERATED_KEYS);
 
 			pstmt.setLong(1, modelParam.getUserNo());
 			pstmt.setString(2, modelParam.getName());
@@ -148,18 +148,20 @@ public class HospitalScheduleDAO {
 			pstmt.setString(5, modelParam.getMemo());
 
 			int cnt = pstmt.executeUpdate();
-			
-			if(cnt>0) {
-				check = true;
+
+			if(cnt > 0) {
+				rs = pstmt.getGeneratedKeys();
+				if(rs.next()) {
+					insertedNo = rs.getLong(1);
+				}
 			}
-			
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			// 사용한 객체 종료
 			close(rs, pstmt, connection);
 		}
-		return check;				
+		return insertedNo;
 	}
 			
 	// //////////////////////////////////////////////////

@@ -125,11 +125,11 @@ public class RestHospital extends HttpServlet {
 			schedule.setNotificationTime(notificationTime);
 			schedule.setMemo(memo);
 			
-			boolean check = hDao.insertHospitalSchedule(schedule);
-			
+			long insertedNo = hDao.insertHospitalSchedule(schedule);
+
 			JSONObject json = new JSONObject();
-			
-			json.put("result", String.valueOf(check));
+			json.put("result", insertedNo > 0 ? "true" : "false");
+			json.put("no", insertedNo);
 
 			response.setContentType("text/html; charset=utf-8");
 			PrintWriter out = response.getWriter();
