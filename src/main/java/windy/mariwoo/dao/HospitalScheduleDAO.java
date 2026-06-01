@@ -35,11 +35,10 @@ public class HospitalScheduleDAO {
 		
 		String whereSQL = "";
 		
-		if(!"".equals(modelParam.getStartAt()) && !"".equals(modelParam.getEndAt())) {
-			whereSQL = " AND ( "
-					+ "date(time) LIKE CONCAT('%', '"+modelParam.getStartAt()+"', '%') "
-					+ "OR date(time) LIKE CONCAT('%', '"+modelParam.getEndAt()+", '%')"
-					+ ")  ";
+		if(modelParam.getStartAt() != null && !modelParam.getStartAt().isEmpty()
+		&& modelParam.getEndAt() != null && !modelParam.getEndAt().isEmpty()) {
+			whereSQL = " AND date(time) BETWEEN '"
+					+ modelParam.getStartAt() + "' AND '" + modelParam.getEndAt() + "' ";
 		}
 		
 		try {
@@ -63,11 +62,12 @@ public class HospitalScheduleDAO {
 				schedule.setNo(rs.getLong("no"));
 				schedule.setUserNo(rs.getLong("user_no"));
 				schedule.setName(rs.getString("name"));
+				schedule.setTime(rs.getString("time"));
 				schedule.setNotificationTime(rs.getString("notification_time"));
 				schedule.setMemo(rs.getString("memo"));
 				schedule.setCreatedAt(rs.getString("created_at"));
 				schedule.setUpdatedAt(rs.getString("updated_at"));
-				
+
 				listSchedule.add(schedule);
 			}
 			
@@ -203,6 +203,33 @@ public class HospitalScheduleDAO {
 	}
 			
 	// //////////////////////////////////////////////////
+
+	// //////////////////////////////////////////////////
+	// - 스케쥴 삭제
+	// //////////////////////////////////////////////////
+	public boolean deleteHospitalSchedule(long no) {
+
+		boolean check = false;
+
+		try {
+			Class.forName(dbDriver);
+			connection = DriverManager.getConnection(jdbcUrl, id, password);
+
+			pstmt = connection.prepareStatement(
+					"DELETE FROM hospital_schedule WHERE no=?");
+
+			pstmt.setLong(1, no);
+
+			int cnt = pstmt.executeUpdate();
+			if (cnt > 0) check = true;
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			close(rs, pstmt, connection);
+		}
+		return check;
+	}
 
 	////////////////////////////////////////////////////
 	//	- 데이터베이스 관련 객체 정리 -

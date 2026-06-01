@@ -135,6 +135,18 @@ public class RestHospital extends HttpServlet {
 			PrintWriter out = response.getWriter();
 			out.print(json);
 		}
+		else if("delete".equals(cmd)) {
+			long no = Long.parseLong(request.getParameter("no"));
+
+			boolean check = hDao.deleteHospitalSchedule(no);
+
+			JSONObject json = new JSONObject();
+			json.put("result", String.valueOf(check));
+
+			response.setContentType("text/html; charset=utf-8");
+			PrintWriter out = response.getWriter();
+			out.print(json);
+		}
 		else if("modify".equals(cmd)) {
 			long no = Long.parseLong(request.getParameter("no"));
 			String name = request.getParameter("name");
